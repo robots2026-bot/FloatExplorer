@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="FloatExplorer.Core/FloatExplorer.Core.csproj" />
+  <Project Path="FloatExplorer.Tests/FloatExplorer.Tests.csproj" />
+  <Project Path="FloatExplorer/FloatExplorer.csproj" />
+</Solution>

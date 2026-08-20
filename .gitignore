@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET build outputs
+**/bin/
+**/obj/
+
+# Test and coverage outputs
+TestResults/
+coverage/
+*.trx
+
+# Local packages and logs
+packages/
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
