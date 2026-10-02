@@ -34,8 +34,8 @@
             //
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1280, 820);
-            MinimumSize = new Size(1080, 700);
+            ClientSize = new Size(1320, 940);
+            MinimumSize = new Size(1100, 900);
             Name = "FormMain";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Float Explorer — 浮点格式观察器";

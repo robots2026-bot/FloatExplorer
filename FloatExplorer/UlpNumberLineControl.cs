@@ -11,7 +11,7 @@ public sealed class UlpNumberLineControl : Control
 
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public FloatValue? B { get; set; }
+    public double InputValue { get; set; }
 
     public UlpNumberLineControl()
     {
@@ -20,23 +20,23 @@ public sealed class UlpNumberLineControl : Control
         SetStyle(ControlStyles.ResizeRedraw, true);
     }
 
-    public void SetValues(FloatValue a, FloatValue b)
+    public void SetValue(FloatValue quantized, double inputValue)
     {
-        A = a;
-        B = b;
+        A = quantized;
+        InputValue = inputValue;
         Invalidate();
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
-        if (A is null || B is null)
+        if (A is null)
         {
             TextRenderer.DrawText(e.Graphics, "暂无可比较数据", Font, ClientRectangle, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             return;
         }
 
-        if (!double.IsFinite(A.Value) || !double.IsFinite(B.Value) || !double.IsFinite(A.Ulp) || A.Ulp <= 0d)
+        if (!double.IsFinite(A.Value) || !double.IsFinite(InputValue) || !double.IsFinite(A.Ulp) || A.Ulp <= 0d)
         {
             TextRenderer.DrawText(e.Graphics, "特殊值不适用相邻 ULP 数轴", Font, ClientRectangle, ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             return;
@@ -55,11 +55,11 @@ public sealed class UlpNumberLineControl : Control
         DrawTick(e.Graphics, right, y, next);
 
         double span = next - previous;
-        double position = span > 0d ? (B.Value - previous) / span : 0.5d;
+        double position = span > 0d ? (InputValue - previous) / span : 0.5d;
         int bx = left + (int)Math.Round(Math.Clamp(position, 0d, 1d) * (right - left));
         using SolidBrush brush = new(Color.FromArgb(234, 116, 34));
         e.Graphics.FillEllipse(brush, bx - 7, y - 7, 14, 14);
-        TextRenderer.DrawText(e.Graphics, "B", Font, new Rectangle(bx - 12, y - 29, 24, 18), Color.FromArgb(184, 79, 17), TextFormatFlags.HorizontalCenter);
+        TextRenderer.DrawText(e.Graphics, "输入", Font, new Rectangle(bx - 22, y - 29, 44, 18), Color.FromArgb(184, 79, 17), TextFormatFlags.HorizontalCenter);
 
         using SolidBrush aBrush = new(Color.FromArgb(22, 119, 210));
         int ax = (left + right) / 2;

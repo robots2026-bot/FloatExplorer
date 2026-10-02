@@ -9,7 +9,10 @@ public sealed class FormatViewControl : UserControl
     private readonly Label layoutLabel = new();
     private readonly Label descriptionLabel = new();
     private readonly BitFieldControl bitField = new();
-    private readonly Label equationLabel = new();
+    private readonly Label signDetailLabel = new();
+    private readonly Label exponentDetailLabel = new();
+    private readonly Label precisionDetailLabel = new();
+    private readonly FloatingPointFormulaControl formulaControl = new();
     private readonly TableLayoutPanel properties = new();
     private readonly Dictionary<string, Label> valueLabels = [];
 
@@ -22,18 +25,18 @@ public sealed class FormatViewControl : UserControl
     public FormatViewControl(string caption, string defaultFormatId)
     {
         Dock = DockStyle.Fill;
-        Padding = new Padding(12);
+        Padding = new Padding(8, 4, 8, 4);
         BackColor = Color.White;
-        BorderStyle = BorderStyle.FixedSingle;
+        BorderStyle = BorderStyle.None;
 
         TableLayoutPanel root = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 7 };
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 90));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 8));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 126));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
 
         Panel header = new() { Dock = DockStyle.Fill };
         Label captionLabel = new() { Text = caption, AutoSize = true, Font = new Font("Segoe UI", 11f, FontStyle.Bold), Location = new Point(0, 7) };
@@ -62,12 +65,15 @@ public sealed class FormatViewControl : UserControl
             ValueEdited?.Invoke(this, edited);
         };
 
-        equationLabel.Dock = DockStyle.Fill;
-        equationLabel.Font = new Font("Consolas", 9.5f);
-        equationLabel.BackColor = Color.FromArgb(237, 246, 255);
-        equationLabel.ForeColor = Color.FromArgb(28, 74, 112);
-        equationLabel.Padding = new Padding(8, 7, 8, 4);
-        equationLabel.AutoEllipsis = true;
+        TableLayoutPanel details = new() { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = new Padding(0), Padding = new Padding(0, 3, 0, 5) };
+        details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
+        details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
+        details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
+        details.Controls.Add(CreateDetailBlock("正负号（Sign）", Color.FromArgb(255, 232, 235), Color.FromArgb(190, 58, 73), signDetailLabel), 0, 0);
+        details.Controls.Add(CreateDetailBlock("指数（Exponent）", Color.FromArgb(255, 247, 224), Color.FromArgb(154, 104, 0), exponentDetailLabel), 1, 0);
+        details.Controls.Add(CreateDetailBlock("数据精度（Fraction）", Color.FromArgb(228, 247, 252), Color.FromArgb(0, 112, 145), precisionDetailLabel), 2, 0);
+
+        formulaControl.Dock = DockStyle.Fill;
 
         properties.Dock = DockStyle.Fill;
         properties.ColumnCount = 4;
@@ -93,8 +99,8 @@ public sealed class FormatViewControl : UserControl
         root.Controls.Add(header, 0, 0);
         root.Controls.Add(descriptionLabel, 0, 1);
         root.Controls.Add(bitField, 0, 2);
-        root.Controls.Add(equationLabel, 0, 3);
-        root.Controls.Add(new Panel(), 0, 4);
+        root.Controls.Add(details, 0, 3);
+        root.Controls.Add(formulaControl, 0, 4);
         root.Controls.Add(properties, 0, 5);
         root.Controls.Add(layoutLabel, 0, 6);
         Controls.Add(root);
@@ -107,7 +113,8 @@ public sealed class FormatViewControl : UserControl
     {
         Value = value;
         bitField.Value = value;
-        equationLabel.Text = Equation(value);
+        formulaControl.Value = value;
+        UpdateExplanation(value);
         valueLabels["Hex"].Text = value.Hex;
         valueLabels["分类"].Text = value.CategoryName;
         valueLabels["十进制值"].Text = FormatNumber(value.Value);
@@ -133,6 +140,20 @@ public sealed class FormatViewControl : UserControl
         valueLabels[name] = value;
     }
 
+    private static Control CreateDetailBlock(string title, Color background, Color titleColor, Label detailLabel)
+    {
+        Panel panel = new() { Dock = DockStyle.Fill, BackColor = background, BorderStyle = BorderStyle.FixedSingle, Margin = new Padding(2, 0, 2, 0), Padding = new Padding(8, 5, 8, 5) };
+        Label titleLabel = new() { Text = title, Dock = DockStyle.Top, Height = 23, Font = new Font("Segoe UI", 9f, FontStyle.Bold), ForeColor = titleColor };
+        detailLabel.Dock = DockStyle.Fill;
+        detailLabel.Font = new Font("Consolas", 8.8f);
+        detailLabel.ForeColor = Color.FromArgb(38, 48, 60);
+        detailLabel.Padding = new Padding(0, 2, 0, 0);
+        detailLabel.AutoEllipsis = false;
+        panel.Controls.Add(detailLabel);
+        panel.Controls.Add(titleLabel);
+        return panel;
+    }
+
     private void OnFormatChanged()
     {
         if (formatBox.SelectedItem is not FloatFormat format) return;
@@ -141,17 +162,46 @@ public sealed class FormatViewControl : UserControl
         SelectedFormatChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static string Equation(FloatValue value)
+    private void UpdateExplanation(FloatValue value)
     {
-        string sign = value.IsNegative ? "−" : "+";
-        return value.Category switch
+        int signBit = value.IsNegative ? 1 : 0;
+        string signMultiplier = value.IsNegative ? "−1" : "+1";
+        string signName = value.IsNegative ? "负数" : "正数";
+        string exponentBits = Convert.ToString(value.ExponentField, 2).PadLeft(value.Format.ExponentBits, '0');
+        string fractionBits = FractionBits(value);
+        double fractionScale = Math.ScaleB(1d, value.Format.FractionBits);
+        double fractionValue = value.FractionField / fractionScale;
+
+        signDetailLabel.Text = $"原始值：s = {signBit}\r\n符号结果：(-1)^{signBit} = {signMultiplier}\r\n因此该数为：{signName}";
+
+        switch (value.Category)
         {
-            FloatCategory.Zero => $"{sign}0",
-            FloatCategory.Infinity => $"{sign}∞（指数全 1，Fraction 全 0）",
-            FloatCategory.NaN => "NaN（特殊编码，不表示实数）",
-            FloatCategory.Subnormal => $"{sign}0.{FractionBits(value)}₂ × 2^({value.Format.MinimumNormalExponent}) = {FormatNumber(value.Value)}",
-            _ => $"{sign}1.{FractionBits(value)}₂ × 2^({value.UnbiasedExponent}) = {FormatNumber(value.Value)}"
-        };
+            case FloatCategory.Normal:
+                int actualExponent = value.UnbiasedExponent!.Value;
+                double exponentResult = Math.ScaleB(1d, actualExponent);
+                double significand = 1d + fractionValue;
+                exponentDetailLabel.Text = $"原始位：{exponentBits}₂ = {value.ExponentField}\r\n实际指数：{value.ExponentField} − Bias {value.Format.ExponentBias} = {actualExponent}\r\n指数结果：2^{actualExponent} = {FormatNumber(exponentResult)}";
+                precisionDetailLabel.Text = $"原始位：{fractionBits}₂ = {value.FractionField}\r\n小数部分：{value.FractionField} / 2^{value.Format.FractionBits} = {FormatNumber(fractionValue)}\r\n有效数字：1 + {FormatNumber(fractionValue)} = {FormatNumber(significand)}";
+                break;
+            case FloatCategory.Subnormal:
+                int subnormalExponent = value.Format.MinimumNormalExponent;
+                double subnormalExponentResult = Math.ScaleB(1d, subnormalExponent);
+                exponentDetailLabel.Text = $"原始位：{exponentBits}₂ = 0（Subnormal 标记）\r\n实际指数：1 − Bias {value.Format.ExponentBias} = {subnormalExponent}\r\n指数结果：2^{subnormalExponent} = {FormatNumber(subnormalExponentResult)}";
+                precisionDetailLabel.Text = $"原始位：{fractionBits}₂ = {value.FractionField}\r\n没有隐藏的 1\r\n有效数字：{value.FractionField} / 2^{value.Format.FractionBits} = {FormatNumber(fractionValue)}";
+                break;
+            case FloatCategory.Zero:
+                exponentDetailLabel.Text = $"原始位：{exponentBits}₂ = 0\r\n指数全 0，Fraction 也全 0\r\n该编码表示零，不计算实际指数";
+                precisionDetailLabel.Text = $"原始位：{fractionBits}₂ = 0\r\n有效数字：0\r\n数据精度结果：0";
+                break;
+            case FloatCategory.Infinity:
+                exponentDetailLabel.Text = $"原始位：{exponentBits}₂ = {value.ExponentField}\r\n指数位全 1\r\n这是 Infinity 特殊编码，不减 Bias";
+                precisionDetailLabel.Text = $"原始位：{fractionBits}₂ = 0\r\nFraction 全 0\r\n与全 1 指数共同表示 Infinity";
+                break;
+            default:
+                exponentDetailLabel.Text = $"原始位：{exponentBits}₂ = {value.ExponentField}\r\n指数位全 1\r\n这是 NaN 特殊编码，不计算实际指数";
+                precisionDetailLabel.Text = $"原始位：{fractionBits}₂ = {value.FractionField}\r\nFraction 非特殊零值\r\n该 payload 表示 NaN，不是普通数值精度";
+                break;
+        }
     }
 
     private static string FractionBits(FloatValue value) => Convert.ToString((long)value.FractionField, 2).PadLeft(value.Format.FractionBits, '0');
