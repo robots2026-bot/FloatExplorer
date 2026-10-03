@@ -34,6 +34,8 @@ public sealed class FloatingPointFormulaControl : Control
 
         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+        using SolidBrush accentBrush = new(Color.FromArgb(22, 119, 210));
+        e.Graphics.FillRectangle(accentBrush, 0, 0, 4, ClientSize.Height);
         if (value.Category is FloatCategory.Zero or FloatCategory.Infinity or FloatCategory.NaN)
         {
             DrawSpecialValue(e.Graphics, value);
@@ -43,7 +45,7 @@ public sealed class FloatingPointFormulaControl : Control
         DrawSymbolicFormula(e.Graphics, value);
         using Font calculationFont = new("Consolas", 9.3f);
         using SolidBrush calculationBrush = new(ForeColor);
-        e.Graphics.DrawString(NumericExpansion(value), calculationFont, calculationBrush, new RectangleF(14f, 57f, ClientSize.Width - 28f, ClientSize.Height - 59f));
+        e.Graphics.DrawString(NumericExpansion(value), calculationFont, calculationBrush, new RectangleF(20f, 59f, ClientSize.Width - 34f, ClientSize.Height - 61f));
     }
 
     private void DrawSymbolicFormula(Graphics graphics, FloatValue current)
@@ -54,7 +56,7 @@ public sealed class FloatingPointFormulaControl : Control
         using SolidBrush brush = new(ForeColor);
         using Pen fractionPen = new(ForeColor, 1.25f);
 
-        float x = 14f;
+        float x = 20f;
         const float y = 10f;
         x = DrawText(graphics, "Value = (−1)", mainFont, brush, x, y);
         x = DrawSuperscript(graphics, "S", superscriptFont, brush, x - 2f, y - 1f) + 5f;
@@ -124,7 +126,7 @@ public sealed class FloatingPointFormulaControl : Control
             FloatCategory.Infinity => "Exponent 全为 1 且 Fraction 为 0，这是 Infinity 特殊编码。",
             _ => "这是 NaN 特殊编码，不能代入普通浮点数计算公式。"
         };
-        graphics.DrawString(title, titleFont, brush, 14f, 10f);
-        graphics.DrawString(detail, detailFont, brush, 14f, 50f);
+        graphics.DrawString(title, titleFont, brush, 20f, 10f);
+        graphics.DrawString(detail, detailFont, brush, 20f, 50f);
     }
 }

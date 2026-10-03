@@ -31,25 +31,25 @@ public partial class FormMain : Form
 
     private void BuildInterface()
     {
-        BackColor = Color.FromArgb(244, 246, 248);
-        Font = new Font("Segoe UI", 9f);
+        BackColor = Color.FromArgb(238, 242, 247);
+        Font = new Font("Segoe UI", 9.25f);
 
-        TableLayoutPanel root = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4, Padding = new Padding(12) };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 78));
+        TableLayoutPanel root = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Padding = new Padding(14) };
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 112));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 528));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 190));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
         root.Controls.Add(BuildToolbar(), 0, 0);
 
-        formatView.Margin = new Padding(0, 0, 0, 10);
+        formatView.Margin = new Padding(0, 0, 0, 12);
         root.Controls.Add(formatView, 0, 1);
         root.Controls.Add(BuildAnalysisArea(), 0, 2);
 
         statusLabel.Dock = DockStyle.Fill;
         statusLabel.TextAlign = ContentAlignment.MiddleLeft;
-        statusLabel.ForeColor = Color.FromArgb(80, 94, 109);
-        statusLabel.Padding = new Padding(4, 0, 0, 0);
-        root.Controls.Add(statusLabel, 0, 3);
+        statusLabel.ForeColor = Color.FromArgb(63, 78, 94);
+        statusLabel.BackColor = Color.FromArgb(225, 237, 248);
+        statusLabel.Padding = new Padding(10, 0, 0, 0);
+        statusLabel.Margin = new Padding(0, 6, 0, 0);
         Controls.Add(root);
 
         formatView.SelectedFormatChanged += (_, _) => ApplyInput();
@@ -58,11 +58,15 @@ public partial class FormMain : Form
 
     private Control BuildToolbar()
     {
-        TableLayoutPanel toolbar = new() { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1, BackColor = Color.White, Padding = new Padding(10, 7, 10, 7), Margin = new Padding(0, 0, 0, 10) };
-        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
+        TableLayoutPanel card = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle, Padding = new Padding(12, 8, 12, 7), Margin = new Padding(0, 0, 0, 12) };
+        card.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        card.RowStyles.Add(new RowStyle(SizeType.Absolute, 25));
+
+        TableLayoutPanel toolbar = new() { Dock = DockStyle.Fill, ColumnCount = 5, RowCount = 1, Margin = new Padding(0) };
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
         toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));
-        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23));
-        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 17));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18));
         toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10));
 
         inputBox.Text = "0.1";
@@ -72,6 +76,7 @@ public partial class FormMain : Form
 
         inputKindBox.DropDownStyle = ComboBoxStyle.DropDownList;
         inputKindBox.Dock = DockStyle.Fill;
+        inputKindBox.FlatStyle = FlatStyle.Flat;
         inputKindBox.DataSource = new[]
         {
             new Choice<FloatInputKind>("十进制数值", FloatInputKind.Decimal),
@@ -81,6 +86,7 @@ public partial class FormMain : Form
 
         roundingBox.DropDownStyle = ComboBoxStyle.DropDownList;
         roundingBox.Dock = DockStyle.Fill;
+        roundingBox.FlatStyle = FlatStyle.Flat;
         roundingBox.DataSource = new[]
         {
             new Choice<FloatRoundingMode>("最近偶数（RNE）", FloatRoundingMode.ToNearestEven),
@@ -91,11 +97,12 @@ public partial class FormMain : Form
 
         specialValueBox.DropDownStyle = ComboBoxStyle.DropDownList;
         specialValueBox.Dock = DockStyle.Fill;
+        specialValueBox.FlatStyle = FlatStyle.Flat;
         specialValueBox.Items.AddRange(["选择示例…", "0.1（典型舍入）", "+0", "−0", "最小 Subnormal", "最小 Normal", "最大有限值", "+Infinity", "NaN"]);
         specialValueBox.SelectedIndex = 0;
         specialValueBox.SelectedIndexChanged += (_, _) => ApplySpecialValue();
 
-        parseButton.Text = "解析";
+        parseButton.Text = "应用  ↵";
         parseButton.Dock = DockStyle.Fill;
         parseButton.BackColor = Color.FromArgb(22, 119, 210);
         parseButton.ForeColor = Color.White;
@@ -108,25 +115,32 @@ public partial class FormMain : Form
         toolbar.Controls.Add(Labeled("舍入模式", roundingBox), 2, 0);
         toolbar.Controls.Add(Labeled("特殊值", specialValueBox), 3, 0);
         toolbar.Controls.Add(parseButton, 4, 0);
-        return toolbar;
+        card.Controls.Add(toolbar, 0, 0);
+        card.Controls.Add(statusLabel, 0, 1);
+        return card;
     }
 
     private Control BuildAnalysisArea()
     {
-        GroupBox group = new() { Text = "输入值与量化结果", Dock = DockStyle.Fill, Padding = new Padding(12), BackColor = Color.White, Margin = new Padding(0) };
-        TableLayoutPanel layout = new() { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1 };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
+        Panel card = new() { Dock = DockStyle.Fill, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle, Margin = new Padding(0) };
+        TableLayoutPanel cardLayout = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Padding = new Padding(12, 8, 12, 10) };
+        cardLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        cardLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        Label sectionTitle = new() { Text = "量化误差与相邻值", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10.5f, FontStyle.Bold), ForeColor = Color.FromArgb(31, 45, 61), TextAlign = ContentAlignment.MiddleLeft };
+
+        TableLayoutPanel layout = new() { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = new Padding(0) };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 61));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39));
 
         Panel linePanel = new() { Dock = DockStyle.Fill };
-        Label lineTitle = new() { Text = "前一个可表示值 — 当前量化值 — 后一个可表示值（橙点为原始输入）", Dock = DockStyle.Top, Height = 25, ForeColor = Color.FromArgb(70, 84, 100) };
+        Label lineTitle = new() { Text = "相邻可表示值　● 量化值　● 原始输入", Dock = DockStyle.Top, Height = 25, ForeColor = Color.FromArgb(70, 84, 100), Font = new Font("Segoe UI", 8.75f) };
         numberLine.Dock = DockStyle.Fill;
         linePanel.Controls.Add(numberLine);
         linePanel.Controls.Add(lineTitle);
 
-        TableLayoutPanel metrics = new() { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 5, Padding = new Padding(18, 4, 4, 4) };
-        metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
-        metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 52));
+        TableLayoutPanel metrics = new() { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 5, BackColor = Color.FromArgb(247, 249, 252), Padding = new Padding(14, 6, 12, 6), Margin = new Padding(14, 0, 0, 0) };
+        metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 43));
+        metrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 57));
         AddMetric(metrics, 0, "原始输入值", inputValueLabel);
         AddMetric(metrics, 1, "量化后的实际值", storedValueLabel);
         AddMetric(metrics, 2, "绝对误差", absoluteErrorLabel);
@@ -135,8 +149,10 @@ public partial class FormMain : Form
 
         layout.Controls.Add(linePanel, 0, 0);
         layout.Controls.Add(metrics, 1, 0);
-        group.Controls.Add(layout);
-        return group;
+        cardLayout.Controls.Add(sectionTitle, 0, 0);
+        cardLayout.Controls.Add(layout, 0, 1);
+        card.Controls.Add(cardLayout);
+        return card;
     }
 
     private void ApplyInput()
@@ -184,7 +200,7 @@ public partial class FormMain : Form
         inputValueLabel.Text = FormatViewControl.FormatNumber(input);
         storedValueLabel.Text = FormatViewControl.FormatNumber(quantized.Value);
         absoluteErrorLabel.Text = FormatViewControl.FormatNumber(absoluteError);
-        relativeErrorLabel.Text = FormatMetric(relativeError);
+        relativeErrorLabel.Text = FormatRelativeError(relativeError);
         ulpErrorLabel.Text = FormatMetric(ulpError);
         numberLine.SetValue(quantized, input);
 
@@ -228,10 +244,10 @@ public partial class FormMain : Form
 
     private static Control Labeled(string text, Control control)
     {
-        TableLayoutPanel panel = new() { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = new Padding(4, 0, 8, 0) };
-        panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 18));
+        TableLayoutPanel panel = new() { Dock = DockStyle.Fill, RowCount = 2, ColumnCount = 1, Margin = new Padding(3, 0, 9, 0) };
+        panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 19));
         panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        panel.Controls.Add(new Label { Text = text, Dock = DockStyle.Fill, ForeColor = Color.FromArgb(83, 98, 114), Font = new Font("Segoe UI", 8f) }, 0, 0);
+        panel.Controls.Add(new Label { Text = text, Dock = DockStyle.Fill, ForeColor = Color.FromArgb(83, 98, 114), Font = new Font("Segoe UI", 8.25f, FontStyle.Bold) }, 0, 0);
         panel.Controls.Add(control, 0, 1);
         return panel;
     }
@@ -239,12 +255,13 @@ public partial class FormMain : Form
     private static void AddMetric(TableLayoutPanel panel, int row, string name, Label value)
     {
         panel.RowStyles.Add(new RowStyle(SizeType.Percent, 20));
-        panel.Controls.Add(new Label { Text = name, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(83, 98, 114) }, 0, row);
+        panel.Controls.Add(new Label { Text = name, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(83, 98, 114), Font = new Font("Segoe UI", 8.75f) }, 0, row);
         panel.Controls.Add(value, 1, row);
     }
 
-    private static Label MetricValueLabel() => new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Font = new Font("Consolas", 9f, FontStyle.Bold), ForeColor = Color.FromArgb(18, 94, 151), AutoEllipsis = true };
+    private static Label MetricValueLabel() => new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Font = new Font("Consolas", 9f, FontStyle.Bold), ForeColor = Color.FromArgb(18, 94, 151), AutoEllipsis = true, Padding = new Padding(0, 0, 2, 0) };
     private static string FormatMetric(double value) => double.IsNaN(value) ? "—" : value.ToString("0.######E+00");
+    private static string FormatRelativeError(double value) => double.IsNaN(value) ? "—" : $"{value:E6}  ({value * 100d:G6}%)";
 
     private sealed record Choice<T>(string Label, T Value)
     {

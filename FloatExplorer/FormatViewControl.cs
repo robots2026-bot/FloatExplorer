@@ -25,37 +25,43 @@ public sealed class FormatViewControl : UserControl
     public FormatViewControl(string caption, string defaultFormatId)
     {
         Dock = DockStyle.Fill;
-        Padding = new Padding(8, 4, 8, 4);
+        Padding = new Padding(14, 10, 14, 8);
         BackColor = Color.White;
-        BorderStyle = BorderStyle.None;
+        BorderStyle = BorderStyle.FixedSingle;
 
-        TableLayoutPanel root = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 7 };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 126));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 92));
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+        TableLayoutPanel root = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 6, Margin = new Padding(0) };
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 88));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 122));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 94));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 112));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
 
         Panel header = new() { Dock = DockStyle.Fill };
-        Label captionLabel = new() { Text = caption, AutoSize = true, Font = new Font("Segoe UI", 11f, FontStyle.Bold), Location = new Point(0, 7) };
+        Label captionLabel = new() { Text = caption, AutoSize = true, Font = new Font("Segoe UI", 12f, FontStyle.Bold), ForeColor = Color.FromArgb(29, 43, 58), Location = new Point(0, 2) };
         formatBox.DropDownStyle = ComboBoxStyle.DropDownList;
         formatBox.DataSource = FloatFormat.All.ToList();
         formatBox.DisplayMember = nameof(FloatFormat.DisplayName);
-        formatBox.Width = 180;
+        formatBox.FlatStyle = FlatStyle.Flat;
+        formatBox.Font = new Font("Segoe UI", 9.25f, FontStyle.Bold);
+        formatBox.Width = 210;
         formatBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        formatBox.Location = new Point(Math.Max(190, Width - formatBox.Width), 2);
+        formatBox.Location = new Point(Math.Max(220, Width - formatBox.Width), 4);
         formatBox.SelectedIndexChanged += (_, _) => OnFormatChanged();
         header.Controls.Add(captionLabel);
         header.Controls.Add(formatBox);
         header.Resize += (_, _) => formatBox.Left = header.ClientSize.Width - formatBox.Width;
 
-        descriptionLabel.Dock = DockStyle.Fill;
+        descriptionLabel.AutoSize = false;
+        descriptionLabel.Location = new Point(0, 30);
+        descriptionLabel.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+        descriptionLabel.Width = Math.Max(200, header.ClientSize.Width - 230);
+        descriptionLabel.Height = 23;
         descriptionLabel.ForeColor = Color.FromArgb(76, 91, 108);
-        descriptionLabel.Font = new Font("Segoe UI", 8.5f);
+        descriptionLabel.Font = new Font("Segoe UI", 8.75f);
         descriptionLabel.AutoEllipsis = true;
-        descriptionLabel.Padding = new Padding(0, 4, 0, 0);
+        header.Controls.Add(descriptionLabel);
+        header.Resize += (_, _) => descriptionLabel.Width = Math.Max(200, header.ClientSize.Width - 230);
 
         bitField.Dock = DockStyle.Fill;
         bitField.RawBitsChanged += (_, raw) =>
@@ -65,7 +71,7 @@ public sealed class FormatViewControl : UserControl
             ValueEdited?.Invoke(this, edited);
         };
 
-        TableLayoutPanel details = new() { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = new Padding(0), Padding = new Padding(0, 3, 0, 5) };
+        TableLayoutPanel details = new() { Dock = DockStyle.Fill, ColumnCount = 3, RowCount = 1, Margin = new Padding(0), Padding = new Padding(0, 4, 0, 6) };
         details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20));
         details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
         details.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
@@ -76,8 +82,14 @@ public sealed class FormatViewControl : UserControl
         formulaControl.Dock = DockStyle.Fill;
 
         properties.Dock = DockStyle.Fill;
+        properties.BackColor = Color.FromArgb(247, 249, 252);
+        properties.Padding = new Padding(12, 7, 12, 7);
         properties.ColumnCount = 4;
         properties.RowCount = 4;
+        properties.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+        properties.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+        properties.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+        properties.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
         properties.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
         properties.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28));
         properties.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
@@ -93,16 +105,15 @@ public sealed class FormatViewControl : UserControl
 
         layoutLabel.Dock = DockStyle.Fill;
         layoutLabel.ForeColor = Color.FromArgb(84, 98, 114);
-        layoutLabel.Font = new Font("Segoe UI", 8f);
-        layoutLabel.TextAlign = ContentAlignment.BottomLeft;
+        layoutLabel.Font = new Font("Segoe UI", 8.25f);
+        layoutLabel.TextAlign = ContentAlignment.MiddleLeft;
 
         root.Controls.Add(header, 0, 0);
-        root.Controls.Add(descriptionLabel, 0, 1);
-        root.Controls.Add(bitField, 0, 2);
-        root.Controls.Add(details, 0, 3);
-        root.Controls.Add(formulaControl, 0, 4);
-        root.Controls.Add(properties, 0, 5);
-        root.Controls.Add(layoutLabel, 0, 6);
+        root.Controls.Add(bitField, 0, 1);
+        root.Controls.Add(details, 0, 2);
+        root.Controls.Add(formulaControl, 0, 3);
+        root.Controls.Add(properties, 0, 4);
+        root.Controls.Add(layoutLabel, 0, 5);
         Controls.Add(root);
 
         formatBox.SelectedItem = FloatFormat.All.Single(format => format.Id == defaultFormatId);
@@ -128,13 +139,15 @@ public sealed class FormatViewControl : UserControl
     public void SelectFormat(string formatId)
     {
         int index = FloatFormat.All.ToList().FindIndex(format => format.Id == formatId);
-        if (index >= 0) formatBox.SelectedIndex = index;
+        if (index < 0) return;
+        if (formatBox.SelectedIndex == index) OnFormatChanged();
+        else formatBox.SelectedIndex = index;
     }
 
     private void AddProperty(string name, int column, int row)
     {
-        Label key = new() { Text = name, Dock = DockStyle.Fill, ForeColor = Color.FromArgb(95, 106, 119), TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 8.5f) };
-        Label value = new() { Dock = DockStyle.Fill, ForeColor = Color.FromArgb(18, 94, 151), TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Consolas", 8.5f), AutoEllipsis = true };
+        Label key = new() { Text = name, Dock = DockStyle.Fill, ForeColor = Color.FromArgb(95, 106, 119), TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold), Margin = new Padding(2, 1, 3, 1) };
+        Label value = new() { Dock = DockStyle.Fill, ForeColor = Color.FromArgb(18, 94, 151), TextAlign = ContentAlignment.MiddleLeft, Font = new Font("Consolas", 8.75f), AutoEllipsis = true, Margin = new Padding(2, 1, 8, 1) };
         properties.Controls.Add(key, column, row);
         properties.Controls.Add(value, column + 1, row);
         valueLabels[name] = value;
@@ -142,7 +155,7 @@ public sealed class FormatViewControl : UserControl
 
     private static Control CreateDetailBlock(string title, Color background, Color titleColor, Label detailLabel)
     {
-        Panel panel = new() { Dock = DockStyle.Fill, BackColor = background, BorderStyle = BorderStyle.FixedSingle, Margin = new Padding(2, 0, 2, 0), Padding = new Padding(8, 5, 8, 5) };
+        Panel panel = new() { Dock = DockStyle.Fill, BackColor = background, BorderStyle = BorderStyle.FixedSingle, Margin = new Padding(2, 0, 2, 0), Padding = new Padding(10, 7, 10, 7) };
         Label titleLabel = new() { Text = title, Dock = DockStyle.Top, Height = 23, Font = new Font("Segoe UI", 9f, FontStyle.Bold), ForeColor = titleColor };
         detailLabel.Dock = DockStyle.Fill;
         detailLabel.Font = new Font("Consolas", 8.8f);

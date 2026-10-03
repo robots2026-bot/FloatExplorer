@@ -44,7 +44,9 @@ public sealed class UlpNumberLineControl : Control
 
         int left = 42;
         int right = ClientSize.Width - 42;
-        int y = 38;
+        int y = Math.Max(42, ClientSize.Height / 2);
+        using SolidBrush rangeBrush = new(Color.FromArgb(240, 246, 252));
+        e.Graphics.FillRectangle(rangeBrush, left, y - 12, Math.Max(1, right - left), 24);
         using Pen axisPen = new(Color.FromArgb(103, 116, 131), 2f);
         e.Graphics.DrawLine(axisPen, left, y, right, y);
 
@@ -64,6 +66,7 @@ public sealed class UlpNumberLineControl : Control
         using SolidBrush aBrush = new(Color.FromArgb(22, 119, 210));
         int ax = (left + right) / 2;
         e.Graphics.FillEllipse(aBrush, ax - 5, y - 5, 10, 10);
+        TextRenderer.DrawText(e.Graphics, "量化", Font, new Rectangle(ax - 24, y - 31, 48, 18), Color.FromArgb(18, 94, 151), TextFormatFlags.HorizontalCenter);
     }
 
     private void DrawTick(Graphics graphics, int x, int y, double value)

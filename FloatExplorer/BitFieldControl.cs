@@ -7,6 +7,7 @@ public sealed class BitFieldControl : Control
 {
     private FloatValue? value;
     private int hoveredCell = -1;
+    private readonly ToolTip bitToolTip = new() { InitialDelay = 250, ReshowDelay = 100, AutoPopDelay = 5000 };
 
     public event EventHandler<ulong>? RawBitsChanged;
 
@@ -76,6 +77,7 @@ public sealed class BitFieldControl : Control
         int hit = HitTest(e.Location);
         if (hit == hoveredCell) return;
         hoveredCell = hit;
+        bitToolTip.SetToolTip(this, hit >= 0 && value is not null ? BitHint(hit, value.Format) : null);
         Invalidate();
     }
 
@@ -83,6 +85,7 @@ public sealed class BitFieldControl : Control
     {
         base.OnMouseLeave(e);
         hoveredCell = -1;
+        bitToolTip.SetToolTip(this, null);
         Invalidate();
     }
 
@@ -99,6 +102,12 @@ public sealed class BitFieldControl : Control
 
     protected override bool IsInputKey(Keys keyData) => keyData is Keys.Left or Keys.Right or Keys.Space || base.IsInputKey(keyData);
 
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) bitToolTip.Dispose();
+        base.Dispose(disposing);
+    }
+
     private int HitTest(Point point)
     {
         if (value is null || point.Y is < 20 or > 54) return -1;
@@ -114,6 +123,13 @@ public sealed class BitFieldControl : Control
     }
 
     private static Color FieldColor(int cell, FloatFormat format) => cell == 0 ? SignColor : cell <= format.ExponentBits ? ExponentColor : FractionColor;
+
+    private static string BitHint(int cell, FloatFormat format)
+    {
+        int bitIndex = format.TotalBits - 1 - cell;
+        string field = cell == 0 ? "符号位 Sign" : cell <= format.ExponentBits ? "指数位 Exponent" : "精度位 Fraction";
+        return $"位 {bitIndex} · {field} · 单击翻转";
+    }
 
     private static void DrawFieldLabel(Graphics graphics, string text, float x, float width, float y, Color color)
     {
